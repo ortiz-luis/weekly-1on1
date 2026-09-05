@@ -1,37 +1,22 @@
 /* Content components calibrated from golden pages 6, 9 and 10. */
-.pv-slide.pasqal-cards .pv-card-stack{
-  position:absolute;left:5.95%;right:5.95%;top:40.35%;z-index:3;
-  display:flex;flex-direction:column;gap:3.75cqw;
-}
-.pv-slide.pasqal-cards .pv-pasqal-card{
-  margin:0!important;border-radius:.78cqw!important;overflow:hidden;background:#E1F6E9!important;
-}
-.pv-slide.pasqal-cards .pv-pasqal-card-head{
-  padding:.42cqw .78cqw!important;background:#173035!important;color:#fff!important;
-  font-size:1.50cqw!important;font-weight:700!important;line-height:1.05!important;
-}
-.pv-slide.pasqal-cards .pv-pasqal-card-body{
-  padding:.48cqw .78cqw!important;color:#173035!important;font-size:1.43cqw!important;line-height:1.18!important;
-}
-.pv-slide.pasqal-cards .pv-pasqal-card:last-child .pv-pasqal-card-head{
-  background:#00C887!important;color:#0F1E23!important;
-}
-.pv-slide.pasqal-kpis .pv-kpi-grid{
-  position:absolute;left:5.2%;right:5.2%;top:41.5%;z-index:3;display:grid;grid-template-columns:repeat(3,1fr);gap:4%;text-align:center;
-}
+.pv-slide.pasqal-cards .pv-card-stack{position:absolute;left:5.95%;right:5.95%;top:40.35%;z-index:3;display:flex;flex-direction:column;gap:3.75cqw}
+.pv-slide.pasqal-cards .pv-pasqal-card{margin:0!important;border-radius:.78cqw!important;overflow:hidden;background:#E1F6E9!important}
+.pv-slide.pasqal-cards .pv-pasqal-card-head{padding:.42cqw .78cqw!important;background:#173035!important;color:#fff!important;font-size:1.50cqw!important;font-weight:700!important;line-height:1.05!important}
+.pv-slide.pasqal-cards .pv-pasqal-card-body{padding:.48cqw .78cqw!important;color:#173035!important;font-size:1.43cqw!important;line-height:1.18!important}
+.pv-slide.pasqal-cards .pv-pasqal-card:last-child .pv-pasqal-card-head{background:#00C887!important;color:#0F1E23!important}
+.pv-slide.pasqal-kpis .pv-kpi-grid{position:absolute;left:5.2%;right:5.2%;top:41.5%;z-index:3;display:grid;grid-template-columns:repeat(3,1fr);gap:4%;text-align:center}
 .pv-kpi-value{font-size:3.95cqw!important;font-weight:700!important;line-height:1!important;color:#00C887!important}
 .pv-kpi-label{margin-top:1.05cqw!important;font-size:1.42cqw!important;line-height:1.15!important;color:#173035!important}
 .pv-slide.pasqal-kpis .pv-core>ul{position:absolute;left:8.9%;top:62.7%;width:76%;z-index:3;font-size:1.40cqw!important;line-height:1.28!important}
-/* Dark takeaway slide */
+/* Dark takeaway slide: coordinates from golden page 10. */
 .pv-slide.dark .pv-core>ul{position:absolute;left:8.9%;top:41.8%;width:77%;z-index:3;font-size:1.43cqw!important;line-height:1.30!important}
-.pv-slide.dark .pv-takeaway{
-  position:absolute;left:5.95%;right:5.95%;top:66.4%;z-index:3;border-radius:.75cqw;overflow:hidden;background:#173035;
-}
+.pv-slide.dark .pv-takeaway{position:absolute;left:6.875%;right:6.875%;top:67.4%;z-index:3;border-radius:.75cqw;overflow:hidden;background:#173035}
 .pv-slide.dark .pv-takeaway-head{padding:.40cqw .72cqw;background:#00C887;color:#0F1E23;font-size:1.47cqw;font-weight:700;line-height:1.05}
 .pv-slide.dark .pv-takeaway-body{padding:.52cqw .72cqw 1.0cqw;color:#E1F6E9;font-size:1.40cqw;line-height:1.20}
-/* Golden calibration pass 2026-09-06: section and agenda typography. */
-.pv-slide.section .pv-section-copy{width:52%!important}
-.pv-slide.section .pv-section-copy h2{font-size:4.45cqw!important;line-height:1.01!important;white-space:nowrap!important}
-.pv-slide.agenda .pv-core{padding-top:21.6%!important;font-size:2.38cqw!important;line-height:1.45!important}
-.pv-slide.agenda ol{padding-left:1.72em!important}
-.pv-slide.agenda ol li{margin:.20em 0!important;padding-left:.20em!important}
+/* Exact bbox calibration from the golden PDF. */
+.pv-slide.section .pv-section-copy{left:6.875%!important;top:34.74%!important;width:60%!important}
+.pv-slide.section .pv-section-number{margin-bottom:3.35cqw!important}
+.pv-slide.section .pv-section-copy h2{font-size:5.08cqw!important;line-height:1.00!important;white-space:nowrap!important}
+.pv-slide.agenda .pv-core{padding:47.0% 6.875% 8.5%!important;font-size:2.15cqw!important;line-height:1.42!important}
+.pv-slide.agenda ol{padding-left:1.72em!important;margin:0!important}
+.pv-slide.agenda ol li{margin:.18em 0!important;padding-left:.18em!important}
