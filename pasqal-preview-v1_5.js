@@ -1,6 +1,67 @@
 (()=>{
 let qfPreviewImages=[];
 let qfPreviewUrls=new Map();
+const qfStarter=`---
+title: PASQAL 1:1 deck
+author: Luis Ortiz
+aspect-ratio: 16:9
+theme: scientific-light
+assets:
+  figures: figures
+defaults:
+  footer: PASQAL · CONFIDENTIAL
+---
+
+# Título de la presentación {.title-slide .layout-front background="#0F1E23" foreground="#E1F6E9" footer="none"}
+
+## *Subtítulo / mensaje principal*
+
+::: core
+**Luis Ortiz**
+
+1:1 con Lucas
+:::
+
+---
+
+## Dónde estamos {.layout-1 background="#FFFFFF" foreground="#173035"}
+
+::: core
+### Mensaje principal
+
+- Hecho confirmado
+- Punto todavía por validar
+- Qué cambió desde el último 1:1
+:::
+
+---
+
+## Evidencia {.layout-1-1 columns="43 57" background="#FFFFFF" foreground="#173035"}
+
+::: left
+### Qué demuestra
+
+- Resultado principal
+- Implicación concreta
+- Qué sigue abierto
+:::
+
+::: right
+![](figures/figure-1.png){fit=contain focus="50 50"}
+:::
+
+---
+
+## Decisión / siguiente paso {.layout-1 background="#E1F6E9" foreground="#173035"}
+
+::: core
+### Lo que necesito cerrar
+
+- Decisión o validación de Lucas
+- Owner del siguiente paso
+- Próximo handoff
+:::
+`;
 function qfEsc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function qfStripFm(src){return String(src||'').replace(/^---[\s\S]*?---\s*/,'').trim()}
 function qfSlides(src){return qfStripFm(src).split(/\n---\s*\n/g).map(s=>s.trim()).filter(Boolean)}
@@ -12,9 +73,11 @@ function qfRegion(slide,name){const rx=new RegExp(`:::\\s*${name}[^\\n]*\\n([\\s
 function qfBlockHtml(txt){if(!txt)return '';const lines=txt.split(/\n/);let out='',list=[];const flush=()=>{if(list.length){out+='<ul>'+list.map(x=>`<li>${qfMdInline(x)}</li>`).join('')+'</ul>';list=[]}};for(const raw of lines){const l=raw.trim();if(!l)continue;const im=l.match(/^!\[[^\]]*\]\(([^\s\)]+)[^\)]*\)/);if(im){flush();const src=qfImageSrc(im[1]);out+=src?`<img class="pv-img" src="${src}" alt="">`:`<div class="pv-missing">${qfEsc(im[1])}</div>`;continue}if(/^###\s+/.test(l)){flush();out+=`<h4>${qfMdInline(qfCleanHeading(l))}</h4>`;continue}if(/^[-*]\s+/.test(l)){list.push(l.replace(/^[-*]\s+/,''));continue}if(/^\[\[/.test(l)||/^::/.test(l))continue;flush();out+=`<p>${qfMdInline(l)}</p>`}flush();return out}
 function qfSlideModel(slide,i,total){const first=(slide.match(/^#{1,6}\s+.*$/m)||['Untitled'])[0];const attrs=qfAttrs(first);const title=qfCleanHeading(first);const subtitle=((slide.split(/\n/).find(x=>/^##\s+/.test(x)&&x!==first))||'');const left=qfRegion(slide,'left');const right=qfRegion(slide,'right');const core=qfRegion(slide,'core');return {slide,i,total,attrs,title,subtitle:qfCleanHeading(subtitle),left,right,core}}
 function qfSlideHtml(m){const cls=['pv-slide'];if(m.attrs.front)cls.push('front');else if(m.attrs.dark)cls.push('dark');else cls.push('light');if(m.attrs.two)cls.push('two');const bg=m.attrs.background||'';const fg=m.attrs.foreground||'';const style=`${bg?`background:${bg};`:''}${fg?`color:${fg};`:''}`;let body='';if(m.attrs.front){body=`<div class="pv-front-logo">PASQAL</div><div class="pv-front-copy"><h2>${qfEsc(m.title)}</h2>${m.subtitle?`<h3>${qfEsc(m.subtitle)}</h3>`:''}${qfBlockHtml(m.core)}</div><div class="pv-chevron"><i></i><b></b></div>`}else if(m.attrs.two){body=`<div class="pv-title"><span></span><h2>${qfEsc(m.title)}</h2></div><div class="pv-columns"><div>${qfBlockHtml(m.left)}</div><div>${qfBlockHtml(m.right)}</div></div>`}else{body=`<div class="pv-title"><span></span><h2>${qfEsc(m.title)}</h2></div><div class="pv-core">${qfBlockHtml(m.core||m.slide.replace(/^#{1,6}\s+.*$/m,''))}</div>`}return `<article class="${cls.join(' ')}" style="${style}">${body}${m.attrs.front?'':`<div class="pv-wordmark">PASQAL</div><div class="pv-footer"><span>PASQAL · CONFIDENTIAL</span><span>${m.i+1} / ${m.total}</span></div>`}</article>`}
-function qfCurrentSource(){try{const raw=localStorage.getItem('weekly-1on1-pasqal-quarkfoil-v1.4');if(raw){const obj=JSON.parse(raw);if(obj?.text)return obj.text}}catch{}return ''}
-function qfRenderViewer(){const src=qfCurrentSource();const slides=qfSlides(src);const host=document.getElementById('qf-live-preview');if(!host)return;if(!slides.length){host.innerHTML='<div class="pv-empty">Carga un deck.md para visualizarlo.</div>';return}let idx=0;const models=slides.map((s,i)=>qfSlideModel(s,i,slides.length));const paint=()=>{host.innerHTML=`<div class="pv-toolbar"><button id="pv-prev" ${idx===0?'disabled':''}>←</button><span>Slide ${idx+1} de ${models.length}</span><button id="pv-next" ${idx===models.length-1?'disabled':''}>→</button></div><div class="pv-stage">${qfSlideHtml(models[idx])}</div><div class="pv-thumbs">${models.map((m,i)=>`<button data-pv="${i}" class="${i===idx?'active':''}">${i+1}</button>`).join('')}</div>`;document.getElementById('pv-prev')?.addEventListener('click',()=>{if(idx>0){idx--;paint()}});document.getElementById('pv-next')?.addEventListener('click',()=>{if(idx<models.length-1){idx++;paint()}});host.querySelectorAll('[data-pv]').forEach(b=>b.addEventListener('click',()=>{idx=Number(b.dataset.pv);paint()}))};paint()}
-function qfPrintDeck(){const src=qfCurrentSource();const slides=qfSlides(src);if(!slides.length)return;const models=slides.map((s,i)=>qfSlideModel(s,i,slides.length));const css=[...document.styleSheets].map(()=>"").join('');const w=window.open('','_blank');if(!w)return;w.document.write(`<!doctype html><html><head><title>PASQAL deck</title><style>${document.getElementById('pasqal-print-css')?.textContent||''}</style></head><body class="pv-print">${models.map(qfSlideHtml).join('')}<script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()}
-function qfInstall(){if(location.hash!=='#builder')return;setTimeout(()=>{const card=document.querySelector('.quarkfoil-builder .qf-card');if(!card||document.getElementById('qf-live-preview'))return;const old=card.querySelector('.qf-preview');if(old)old.remove();const actions=card.querySelector('.qf-actions');if(actions){actions.innerHTML=`<button class="primary" id="qf-visualize">Visualizar presentación</button><button id="qf-download-md">Descargar deck.md</button><button id="qf-pdf">Abrir para PDF</button><button id="qf-template">Descargar template PASQAL</button>`}const holder=document.createElement('div');holder.id='qf-live-preview';holder.className='qf-live-preview';actions?.insertAdjacentElement('afterend',holder);document.getElementById('qf-visualize')?.addEventListener('click',qfRenderViewer);document.getElementById('qf-download-md')?.addEventListener('click',()=>document.getElementById('qf-generate')?.click());document.getElementById('qf-pdf')?.addEventListener('click',qfPrintDeck);const im=document.getElementById('qf-images');if(im)im.addEventListener('change',()=>{qfPreviewUrls.forEach(u=>URL.revokeObjectURL(u));qfPreviewUrls.clear();qfPreviewImages=[...(im.files||[])];qfPreviewImages.forEach(f=>qfPreviewUrls.set(f.name,URL.createObjectURL(f)))});const md=document.getElementById('qf-md');if(md)md.addEventListener('change',()=>setTimeout(qfRenderViewer,80));},50)}
+function qfCurrentSource(){try{const raw=localStorage.getItem('weekly-1on1-pasqal-quarkfoil-v1.4');if(raw){const obj=JSON.parse(raw);if(obj?.text)return obj.text}}catch{}return qfStarter}
+function qfNormalizedSource(){let text=qfCurrentSource();for(const f of qfPreviewImages){const n=f.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');text=text.replace(new RegExp(`\\]\\((?:\\./)?${n}\\)`,'g'),`](figures/${f.name})`)}return text}
+function qfDownload(name,text){const b=new Blob([text],{type:'text/markdown;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},250)}
+function qfRenderViewer(){const src=qfNormalizedSource();const slides=qfSlides(src);const host=document.getElementById('qf-live-preview');if(!host)return;if(!slides.length){host.innerHTML='<div class="pv-empty">Carga un deck.md para visualizarlo.</div>';return}let idx=0;const models=slides.map((s,i)=>qfSlideModel(s,i,slides.length));const paint=()=>{host.innerHTML=`<div class="pv-toolbar"><button id="pv-prev" ${idx===0?'disabled':''}>←</button><span>Slide ${idx+1} de ${models.length}</span><button id="pv-next" ${idx===models.length-1?'disabled':''}>→</button></div><div class="pv-stage">${qfSlideHtml(models[idx])}</div><div class="pv-thumbs">${models.map((m,i)=>`<button data-pv="${i}" class="${i===idx?'active':''}">${i+1}</button>`).join('')}</div>`;document.getElementById('pv-prev')?.addEventListener('click',()=>{if(idx>0){idx--;paint()}});document.getElementById('pv-next')?.addEventListener('click',()=>{if(idx<models.length-1){idx++;paint()}});host.querySelectorAll('[data-pv]').forEach(b=>b.addEventListener('click',()=>{idx=Number(b.dataset.pv);paint()}))};paint()}
+function qfPrintDeck(){const slides=qfSlides(qfNormalizedSource());if(!slides.length)return;const models=slides.map((s,i)=>qfSlideModel(s,i,slides.length));const w=window.open('','_blank');if(!w)return;const cssUrl=new URL('pasqal-preview-v1_5.css',location.href).href;w.document.write(`<!doctype html><html><head><title>PASQAL deck</title><link rel="stylesheet" href="${cssUrl}"></head><body class="pv-print">${models.map(qfSlideHtml).join('')}<script>window.onload=()=>setTimeout(()=>window.print(),500)<\/script></body></html>`);w.document.close()}
+function qfInstall(){if(location.hash!=='#builder')return;setTimeout(()=>{const card=document.querySelector('.quarkfoil-builder .qf-card');if(!card||document.getElementById('qf-live-preview'))return;card.querySelector('.qf-preview')?.remove();const actions=card.querySelector('.qf-actions');if(actions){actions.innerHTML=`<button class="primary" id="qf-visualize">Visualizar presentación</button><button id="qf-download-md">Descargar deck.md</button><button id="qf-pdf">Abrir para PDF</button><button id="qf-template">Descargar template PASQAL</button>`}const holder=document.createElement('div');holder.id='qf-live-preview';holder.className='qf-live-preview';actions?.insertAdjacentElement('afterend',holder);document.getElementById('qf-visualize')?.addEventListener('click',qfRenderViewer);document.getElementById('qf-download-md')?.addEventListener('click',()=>qfDownload('deck.md',qfNormalizedSource()));document.getElementById('qf-pdf')?.addEventListener('click',qfPrintDeck);document.getElementById('qf-template')?.addEventListener('click',()=>qfDownload('pasqal-quarkfoil-template.md',qfStarter));const im=document.getElementById('qf-images');if(im)im.addEventListener('change',()=>{qfPreviewUrls.forEach(u=>URL.revokeObjectURL(u));qfPreviewUrls.clear();qfPreviewImages=[...(im.files||[])];qfPreviewImages.forEach(f=>qfPreviewUrls.set(f.name,URL.createObjectURL(f)))});const md=document.getElementById('qf-md');if(md)md.addEventListener('change',()=>setTimeout(qfRenderViewer,100));},50)}
 window.addEventListener('hashchange',qfInstall);qfInstall();
 })();
