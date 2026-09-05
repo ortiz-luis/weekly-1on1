@@ -29,3 +29,9 @@
 }
 .pv-slide.dark .pv-takeaway-head{padding:.40cqw .72cqw;background:#00C887;color:#0F1E23;font-size:1.47cqw;font-weight:700;line-height:1.05}
 .pv-slide.dark .pv-takeaway-body{padding:.52cqw .72cqw 1.0cqw;color:#E1F6E9;font-size:1.40cqw;line-height:1.20}
+/* Golden calibration pass 2026-09-06: section and agenda typography. */
+.pv-slide.section .pv-section-copy{width:52%!important}
+.pv-slide.section .pv-section-copy h2{font-size:4.45cqw!important;line-height:1.01!important;white-space:nowrap!important}
+.pv-slide.agenda .pv-core{padding-top:21.6%!important;font-size:2.38cqw!important;line-height:1.45!important}
+.pv-slide.agenda ol{padding-left:1.72em!important}
+.pv-slide.agenda ol li{margin:.20em 0!important;padding-left:.20em!important}
