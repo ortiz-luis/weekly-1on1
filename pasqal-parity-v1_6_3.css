@@ -1,33 +1,12 @@
 /* PASQAL subtitle convention: first italic-only paragraph in the core is the variable slide subtitle. */
-.pv-slide:has(.pv-core > p:first-child > em:only-child) .pv-title{
-  padding-top:14.32%!important;
-}
-.pv-slide:has(.pv-core > p:first-child > em:only-child) .pv-title h2{
-  font-size:3.20cqw!important;
-}
-.pv-slide:has(.pv-core > p:first-child > em:only-child) .pv-core{
-  padding-top:14.5%!important;
-}
-.pv-slide .pv-core > p:first-child:has(> em:only-child){
-  position:absolute!important;
-  left:8.95%!important;
-  top:25.85%!important;
-  margin:0!important;
-  padding:0!important;
-  font-size:1.52cqw!important;
-  line-height:1.15!important;
-  color:#71858b!important;
-  font-style:normal!important;
-  z-index:3!important;
-}
-.pv-slide .pv-core > p:first-child:has(> em:only-child) em{
-  font-style:normal!important;
-}
-.pv-slide.dark .pv-core > p:first-child:has(> em:only-child){
-  color:#708387!important;
-}
-/* Cards used repeatedly by the PASQAL Beamer theme. */
+.pv-slide:has(.pv-core > p:first-child > em:only-child) .pv-title{padding-top:14.32%!important}
+.pv-slide:has(.pv-core > p:first-child > em:only-child) .pv-title h2{font-size:3.676cqw!important}
+.pv-slide:has(.pv-core > p:first-child > em:only-child) .pv-core{padding-top:14.5%!important}
+.pv-slide .pv-core > p:first-child:has(> em:only-child){position:absolute!important;left:8.86%!important;top:26.44%!important;margin:0!important;padding:0!important;font-size:2.353cqw!important;line-height:1.15!important;color:#71858b!important;font-style:normal!important;z-index:3!important}
+.pv-slide .pv-core > p:first-child:has(> em:only-child) em{font-style:normal!important}
+.pv-slide.dark .pv-core > p:first-child:has(> em:only-child){color:#708387!important}
+/* Cards base; exact positioning is in v1_6_4. */
 .pv-pasqal-card{border-radius:.8cqw;overflow:hidden;background:#E1F6E9;margin:1.35cqw 0}
-.pv-pasqal-card-head{padding:.28cqw .72cqw;background:#173035;color:#fff;font-size:1.56cqw;font-weight:700;line-height:1.05}
-.pv-pasqal-card-body{padding:.38cqw .72cqw;color:#173035;font-size:1.46cqw;line-height:1.18}
+.pv-pasqal-card-head{padding:.28cqw .72cqw;background:#173035;color:#fff;font-size:2.50cqw;font-weight:700;line-height:1.05}
+.pv-pasqal-card-body{padding:.38cqw .72cqw;color:#173035;font-size:2.353cqw;line-height:1.18}
 .pv-slide.dark .pv-pasqal-card{background:#173035}.pv-slide.dark .pv-pasqal-card-head{background:#00C887;color:#0F1E23}.pv-slide.dark .pv-pasqal-card-body{color:#E1F6E9}
