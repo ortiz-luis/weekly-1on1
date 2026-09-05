@@ -1,0 +1,19 @@
+/* PASQAL golden family: Paper in focus + References. */
+.pv-slide.pasqal-focus .pv-columns{position:absolute!important;inset:0!important;padding:0!important;display:block!important;font-size:2.353cqw!important;line-height:1.25!important}
+.pv-slide.pasqal-focus .pv-columns>div:first-child{position:absolute;left:4.56%;top:41.9%;width:43%;min-width:0}
+.pv-slide.pasqal-focus .pv-columns>div:last-child{position:absolute;left:51.5%;top:45.5%;width:44%;min-width:0}
+.pv-focus-subtitle{position:absolute;left:8.82%;top:26.44%;z-index:3;margin:0;font-size:2.353cqw;line-height:1.15;color:#71858b}
+.pv-slide.pasqal-focus .pv-columns h4{font-size:2.353cqw!important;line-height:1.05!important;margin:0 0 2.0cqw!important;color:#0F1E23!important}
+.pv-slide.pasqal-focus .pv-columns>div:first-child h4:nth-of-type(2){margin-top:2.8cqw!important}
+.pv-slide.pasqal-focus .pv-columns ul{font-size:2.353cqw!important;line-height:1.25!important;margin:0!important;padding-left:3.1cqw!important}
+.pv-slide.pasqal-focus .pv-columns li{margin:.62cqw 0!important}
+.pv-focus-card{border-radius:.75cqw;overflow:hidden;background:#E1F6E9;color:#173035}
+.pv-focus-card-head{background:#173035;color:#fff;font-size:2.50cqw;font-weight:700;line-height:1.05;padding:.40cqw .72cqw}
+.pv-focus-card-body{padding:1.25cqw .72cqw .80cqw}
+.pv-focus-row{display:grid;grid-template-columns:34% 66%;font-size:2.353cqw;line-height:1.17;margin:.28cqw 0;border-bottom:1px solid transparent}
+.pv-focus-row:last-child{border-bottom:1px solid #173035;padding-bottom:.45cqw}
+.pv-slide.pasqal-references .pv-core{position:absolute!important;left:6.875%!important;right:6.875%!important;top:48.17%!important;padding:0!important;font-size:2.059cqw!important;line-height:1.25!important}
+.pv-slide.pasqal-references .pv-core ul{margin:0!important;padding-left:2.0cqw!important}
+.pv-slide.pasqal-references .pv-core li{margin:4.35cqw 0 0!important;padding-left:.35cqw!important}
+.pv-slide.pasqal-references .pv-core li:first-child{margin-top:0!important}
+.pv-slide.pasqal-references .pv-core li::before{width:.22cqw!important;height:.22cqw!important;top:.55em!important;left:-1.25cqw!important;background:#00C887!important}
