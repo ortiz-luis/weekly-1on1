@@ -1,1 +1,75 @@
-.qf-live-preview{margin-top:18px}.pv-toolbar{display:flex;align-items:center;justify-content:center;gap:16px;margin:0 0 12px}.pv-toolbar button,.pv-thumbs button{border:1px solid #cbd8d3;background:#fff;color:#173035;border-radius:10px;padding:8px 12px;font-weight:700}.pv-toolbar button:disabled{opacity:.35}.pv-stage{width:100%;overflow:auto}.pv-slide{position:relative;aspect-ratio:16/9;width:min(100%,980px);margin:auto;overflow:hidden;border-radius:12px;background:#fff;color:#173035;box-shadow:0 10px 30px rgba(15,30,35,.12);font-family:Arial,Helvetica,sans-serif}.pv-slide.light{background:#fff;color:#173035}.pv-slide.dark,.pv-slide.front{background:#0F1E23;color:#E1F6E9}.pv-title{display:flex;align-items:center;gap:14px;padding:6.5% 7% 0}.pv-title span{display:block;width:7px;height:42px;background:#00C887}.pv-title h2{font-size:clamp(24px,3.2vw,46px);margin:0;line-height:1.05}.pv-core{padding:5% 8%;font-size:clamp(15px,1.8vw,25px);line-height:1.35}.pv-columns{display:grid;grid-template-columns:43fr 57fr;gap:4%;padding:5% 7% 8%;font-size:clamp(14px,1.55vw,22px);line-height:1.3}.pv-columns>div{min-width:0}.pv-slide h4{font-size:1.15em;margin:.2em 0 .8em}.pv-slide ul{margin:.6em 0;padding-left:1.2em}.pv-slide li{margin:.45em 0}.pv-img{width:100%;height:auto;max-height:55vh;object-fit:contain;display:block}.pv-missing{border:2px dashed #00C887;padding:20px;text-align:center}.pv-wordmark{position:absolute;top:5%;right:5%;font-weight:900;letter-spacing:.08em;font-size:clamp(11px,1.2vw,18px)}.pv-footer{position:absolute;left:7%;right:7%;bottom:4%;display:flex;justify-content:space-between;font-size:clamp(9px,.85vw,14px);opacity:.75}.pv-front-logo{position:absolute;top:6%;left:6%;font-weight:900;letter-spacing:.08em;font-size:clamp(14px,1.4vw,20px)}.pv-front-copy{position:absolute;left:8%;top:31%;width:58%}.pv-front-copy h2{font-size:clamp(30px,4.6vw,66px);line-height:1.02;margin:0 0 .35em}.pv-front-copy h3{font-size:clamp(17px,2.2vw,30px);font-weight:500;color:#00C887;margin:0 0 1em}.pv-chevron{position:absolute;right:-2%;bottom:8%;width:38%;height:42%}.pv-chevron i,.pv-chevron b{position:absolute;display:block;background:#00C887;transform:skewX(-20deg)}.pv-chevron i{width:23%;height:75%;left:10%;top:7%}.pv-chevron b{width:55%;height:23%;right:8%;top:35%;transform:rotate(-25deg) skewX(-20deg)}.pv-thumbs{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:12px}.pv-thumbs button.active{background:#173035;color:#fff}.pv-empty{padding:32px;text-align:center;color:#60706b}.qf-actions{display:flex;flex-wrap:wrap;gap:10px}.qf-actions .primary{flex:1 1 260px}.pv-print .pv-slide{width:1600px;height:900px;aspect-ratio:auto;border-radius:0;box-shadow:none;page-break-after:always}.pv-print .pv-img{max-height:500px}@media(max-width:700px){.pv-columns{grid-template-columns:1fr;gap:10px}.pv-slide.two{aspect-ratio:4/3}.pv-front-copy{width:72%}.qf-actions button{width:100%}}@media print{@page{size:16in 9in;margin:0}.pv-print{margin:0}.pv-print .pv-slide{page-break-after:always}}
+.qf-live-preview{margin-top:18px}
+.pv-toolbar{display:flex;align-items:center;justify-content:center;gap:16px;margin:0 0 12px}
+.pv-toolbar button,.pv-thumbs button{border:1px solid #cbd8d3;background:#fff;color:#173035;border-radius:10px;padding:8px 12px;font-weight:700}
+.pv-toolbar button:disabled{opacity:.35}
+.pv-stage{width:100%;overflow:auto}
+.pv-slide{position:relative;aspect-ratio:16/9;width:min(100%,980px);margin:auto;overflow:hidden;border-radius:12px;background:#fff;color:#0F1E23;box-shadow:0 10px 30px rgba(15,30,35,.12);font-family:Arial,Helvetica,sans-serif}
+.pv-slide.light{background:#fff;color:#0F1E23}
+.pv-slide.dark,.pv-slide.front,.pv-slide.section{background:#0F1E23;color:#E1F6E9}
+
+/* PASQAL Beamer margins: 1.1 cm on a 16 cm-wide 16:9 frame ~= 6.875%. */
+.pv-title{display:flex;align-items:flex-start;gap:.55em;padding:9.8% 6.875% 0}
+.pv-title span{display:block;width:.32em;height:1.7ex;flex:0 0 .32em;background:#00C887;margin-top:.15ex}
+.pv-title h2{font-size:clamp(24px,3.15vw,46px);font-weight:700;margin:0;line-height:1.05;color:inherit}
+.pv-core{padding:4.5% 6.875% 9%;font-size:clamp(15px,1.8vw,25px);line-height:1.35}
+.pv-columns{display:grid;grid-template-columns:43fr 57fr;gap:4%;padding:4.5% 6.875% 9%;font-size:clamp(14px,1.55vw,22px);line-height:1.3}
+.pv-columns>div{min-width:0}
+.pv-slide h4{font-size:1.15em;margin:.2em 0 .8em}
+.pv-slide ul{list-style:none;margin:.6em 0;padding-left:1.25em}
+.pv-slide li{position:relative;margin:.45em 0}
+.pv-slide li::before{content:"";position:absolute;left:-1em;top:.55em;width:.48em;height:.48em;background:#00C887}
+.pv-img{width:100%;height:auto;max-height:54%;object-fit:contain;display:block}
+.pv-missing{border:2px dashed #00C887;padding:20px;text-align:center}
+
+/* Content-frame logo: Beamer places it at top-right, x=-right margin, y=-0.7cm. */
+.pv-wordmark{position:absolute;top:7.8%;right:6.875%;font-weight:900;letter-spacing:.06em;font-size:clamp(11px,1.15vw,18px);color:#173035}
+.pv-slide.dark .pv-wordmark,.pv-slide.section .pv-wordmark{color:#E1F6E9}
+
+/* Footline is split 50/50 in Beamer. */
+.pv-footer{position:absolute;left:6.875%;right:6.875%;bottom:3.2%;display:grid;grid-template-columns:1fr 1fr;font-size:clamp(9px,.82vw,14px);color:#6E8085}
+.pv-footer span:last-child{text-align:right}
+
+/* Title-page logo: x=left margin, y=-0.9cm. */
+.pv-front-logo,.pv-section-logo{position:absolute;top:10%;left:6.875%;z-index:4;font-weight:900;letter-spacing:.06em;font-size:clamp(14px,1.4vw,21px);color:#E1F6E9}
+.pv-front-copy{position:absolute;left:6.875%;top:50%;transform:translateY(-50%);width:52%;z-index:4}
+.pv-front-copy h2{font-size:clamp(30px,4.6vw,66px);line-height:1.02;margin:0 0 .55em;color:#fff}
+.pv-front-copy h3{font-size:clamp(17px,2.1vw,30px);font-weight:500;color:#00C887;margin:0 0 1.3em}
+.pv-front-copy p{color:#E1F6E9}
+
+/* Exact Beamer concept: PasqalDarker base, band x=49.4%-63%, tone-on-tone chevron with tip at right center. */
+.pv-chevron{position:absolute;inset:0;z-index:1;pointer-events:none}
+.pv-chevron::before{content:"";position:absolute;left:49.4%;top:0;width:13.6%;height:100%;background:#173035}
+.pv-chevron::after{content:"";position:absolute;inset:0;background:#173035;clip-path:polygon(62.5% 0,72% 0,100% 50%,72% 100%,62.5% 100%,90.5% 50%)}
+.pv-chevron i,.pv-chevron b{display:none}
+
+/* Section divider: same dark chevron background, mint section number, white title. */
+.pv-section-copy{position:absolute;left:6.875%;top:50%;transform:translateY(-50%);width:60%;z-index:4}
+.pv-section-number{font-size:clamp(32px,4.7vw,70px);font-weight:800;color:#00C887;line-height:1;margin-bottom:.35em}
+.pv-section-copy h2{font-size:clamp(30px,4.7vw,68px);line-height:1.02;margin:0;color:#fff}
+
+.pv-thumbs{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:12px}
+.pv-thumbs button.active{background:#173035;color:#fff}
+.pv-empty{padding:32px;text-align:center;color:#60706b}
+.qf-actions{display:flex;flex-wrap:wrap;gap:10px}
+.qf-actions .primary{flex:1 1 260px}
+
+/* PDF/print view. */
+.pv-print{margin:0;padding:0;background:#fff}
+.pv-print .pv-slide{width:16in;height:9in;aspect-ratio:auto;border-radius:0;box-shadow:none;break-after:page;page-break-after:always}
+.pv-print .pv-img{max-height:5.2in}
+.pv-print .pv-slide,.pv-print .pv-slide *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+
+@media(max-width:700px){
+  .pv-columns{grid-template-columns:1fr;gap:10px}
+  .pv-slide.two{aspect-ratio:4/3}
+  .pv-front-copy{width:52%}
+  .qf-actions button{width:100%}
+}
+
+@media print{
+  @page{size:16in 9in;margin:0}
+  html,body{margin:0!important;padding:0!important;background:#fff!important}
+  .pv-print{margin:0!important;padding:0!important}
+  .pv-print .pv-slide{width:16in!important;height:9in!important;margin:0!important;break-after:page;page-break-after:always}
+  .pv-print .pv-slide,.pv-print .pv-slide *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
