@@ -1,13 +1,13 @@
 .pv-slide{font-family:Helvetica,"Nimbus Sans L",Arial,sans-serif!important;letter-spacing:0!important}.pv-slide h4{font-size:1.08em!important;margin:.15em 0 .62em!important}.pv-slide ul{margin:.45em 0!important;padding-left:1.10em!important}.pv-slide li{margin:.30em 0!important}.pv-slide li::before{left:-.82em!important;width:.29em!important;height:.29em!important;top:.58em!important;background:#00C887!important}
-/* Section divider coordinates measured from golden pages 5 and 8 */
+/* Section divider coordinates + exact embedded font scale. */
 .pv-slide.section .pv-section-logo{position:absolute;left:7.01%;top:10.33%;width:29.76cqw;height:14.08cqw;background:url('https://www.pasqal.com/wp-content/uploads/2025/03/Pasqal-Logo-Light-RGB.png?w=1024') left top/contain no-repeat;font-size:0;color:transparent;z-index:3}
-.pv-slide.section .pv-section-copy{position:absolute;left:7.01%!important;top:34.98%!important;width:43%!important;transform:none!important;z-index:3}
-.pv-slide.section .pv-section-number{font-size:4.6cqw!important;font-weight:700!important;line-height:1!important;margin:0 0 3.5cqw!important;color:#00C887!important}
-.pv-slide.section .pv-section-copy h2{font-size:5.35cqw!important;font-weight:700!important;line-height:1.02!important;margin:0!important;color:#fff!important}
-/* Closing coordinates measured from golden page 12 */
+.pv-slide.section .pv-section-copy{position:absolute;left:6.875%!important;top:34.74%!important;width:60%!important;transform:none!important;z-index:3}
+.pv-slide.section .pv-section-number{font-size:5.147cqw!important;font-weight:700!important;line-height:1!important;margin:0 0 3.35cqw!important;color:#00C887!important}
+.pv-slide.section .pv-section-copy h2{font-size:5.147cqw!important;font-weight:700!important;line-height:1!important;margin:0!important;color:#fff!important;white-space:nowrap!important}
+/* Closing coordinates + exact font scale from golden page 12. */
 .pv-slide.closing .pv-front-logo{left:7.01%!important;top:10.33%!important;width:12.83cqw!important;height:5.87cqw!important}
-.pv-slide.closing .pv-closing-copy{position:absolute;left:33.0%;top:37.8%;width:34%;z-index:3;text-align:center}
-.pv-slide.closing .pv-closing-copy h2{font-size:5.35cqw!important;font-weight:700!important;line-height:1!important;margin:0 0 2.0cqw!important;color:#fff!important}
-.pv-slide.closing .pv-closing-copy p{font-size:2.05cqw!important;line-height:1.1!important;color:#00C887!important;margin:0!important}
+.pv-slide.closing .pv-closing-copy{position:absolute;left:33.0%;top:37.81%;width:34%;z-index:3;text-align:center}
+.pv-slide.closing .pv-closing-copy h2{font-size:5.147cqw!important;font-weight:700!important;line-height:1!important;margin:0 0 2.0cqw!important;color:#fff!important}
+.pv-slide.closing .pv-closing-copy p{font-size:2.50cqw!important;line-height:1.1!important;color:#00C887!important;margin:0!important}
 /* Dark content */
 .pv-slide.dark:not(.section):not(.closing){color:#E1F6E9!important}.pv-slide.dark:not(.section):not(.closing) .pv-title h2{color:#fff!important}.pv-slide.dark:not(.section):not(.closing) .pv-core,.pv-slide.dark:not(.section):not(.closing) .pv-columns{color:#dce8e5!important}
