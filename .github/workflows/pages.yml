@@ -22,6 +22,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Validate Quarkfoil V1.7 runtime
+        run: |
+          node --check pasqal-quarkfoil-v1_7.js
+          grep -q 'pasqal-quarkfoil-v1_7.js' index.html
+          ! grep -E 'pasqal-quarto|quick-builder|qmd-generation|deliverable-builder|pasqal-preview|pasqal-parity|pasqal-quarkfoil-v1_4' index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
