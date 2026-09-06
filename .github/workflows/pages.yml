@@ -27,6 +27,10 @@ jobs:
           node --check pasqal-quarkfoil-v1_7.js
           grep -q 'pasqal-quarkfoil-v1_7.js' index.html
           ! grep -E 'pasqal-quarto|quick-builder|qmd-generation|deliverable-builder|pasqal-preview|pasqal-parity|pasqal-quarkfoil-v1_4' index.html
+      - name: Install browser smoke dependencies
+        run: python -m pip install --disable-pip-version-check selenium pypdf
+      - name: Run Builder V1.7 end-to-end smoke
+        run: python tests/builder_v1_7_smoke.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
