@@ -114,6 +114,9 @@ def main() -> None:
     except Exception:
         for entry in driver.get_log("browser"):
             print("BROWSER_LOG", entry)
+        source = driver.page_source
+        for center in (3800, 4100, 4400):
+            print(f"PAGE_SOURCE_{center}", source[max(0, center - 260): center + 260])
         raise
     finally:
         driver.quit()
