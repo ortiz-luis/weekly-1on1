@@ -12,9 +12,9 @@
     overlay.onclick=e=>{if(e.target===overlay)close()};
     overlay.querySelector('#capture-form').onsubmit=e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.currentTarget).entries());onSave(data);close();save();render()};
   }
-  function field(label,name,placeholder='',required=false){return `<label class="capture-field"><span>${esc(label)}</span><input name="${name}" placeholder="${esc(placeholder)}" ${required?'required':''}></label>`}
-  function area(label,name,placeholder=''){return `<label class="capture-field"><span>${esc(label)}</span><textarea name="${name}" placeholder="${esc(placeholder)}"></textarea></label>`}
-  function topicOptions(){return (state.topics||[]).map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join('')}
+  function field(label,name,placeholder='',required=false,value=''){return `<label class="capture-field"><span>${esc(label)}</span><input name="${name}" value="${esc(value)}" placeholder="${esc(placeholder)}" ${required?'required':''}></label>`}
+  function area(label,name,placeholder='',value=''){return `<label class="capture-field"><span>${esc(label)}</span><textarea name="${name}" placeholder="${esc(placeholder)}">${esc(value)}</textarea></label>`}
+  function topicOptions(selected=''){return (state.topics||[]).map(t=>`<option value="${t.id}" ${t.id===selected?'selected':''}>${esc(t.title)}</option>`).join('')}
   function selectField(label,name,options){return `<label class="capture-field"><span>${esc(label)}</span><select name="${name}">${options}</select></label>`}
 
   const originalTopicsPage=topicsPage;
@@ -30,9 +30,27 @@
   bind=function(){
     originalBind();
     const addTopic=document.querySelector('[data-add-topic]');
-    if(addTopic)addTopic.onclick=()=>showModal('Nuevo tema',`${field('Nombre','title','Ej.: Tema nuevo',true)}${area('Último avance','latestUpdate','Qué cambió o qué sabemos ahora')}${area('Próxima acción','nextAction','Qué tiene que ocurrir después')}${area('Necesito de Lucas','needFromLucas','Solo si hay una decisión o validación concreta')}`,d=>state.topics.push({id:uid('topic',d.title),title:d.title.trim(),status:'active',latestUpdate:d.latestUpdate.trim(),nextAction:d.nextAction.trim(),needFromLucas:d.needFromLucas.trim()}));
+    if(addTopic)addTopic.onclick=()=>showModal('Nuevo tema',`${field('Nombre','title','Ej.: tema de trabajo',true)}${area('Último avance','latestUpdate','Qué cambió o qué sabemos ahora')}${area('Próxima acción','nextAction','Qué tiene que ocurrir después')}${area('Necesito de Lucas','needFromLucas','Solo si hay una decisión o validación concreta')}`,d=>state.topics.push({id:uid('topic',d.title),title:d.title.trim(),status:'active',latestUpdate:d.latestUpdate.trim(),nextAction:d.nextAction.trim(),needFromLucas:d.needFromLucas.trim()}));
+
     const addDeliverable=document.querySelector('[data-add-deliverable]');
-    if(addDeliverable)addDeliverable.onclick=()=>showModal('Nuevo entregable',`${field('Título','title','Ej.: tema principal mapping — 3 slides',true)}${selectField('Tema','topicId',topicOptions())}${selectField('Tipo','type','<option value="presentation">Presentación</option><option value="one-pager">One-pager</option><option value="dashboard">Dashboard</option><option value="report">Informe</option><option value="pdf">PDF</option><option value="demo">Demo</option>')}${area('Objetivo','objective','Qué debe entender o decidir Lucas')}${area('Pregunta / review ask','reviewAsk','Qué quieres obtener al mostrarlo')}${area('Qué falta','missing','Una dependencia por línea')}${field('Link','link','https://...')}`,d=>{const m=meeting();state.deliverables.push({id:uid('deliverable',d.title),topicId:d.topicId,title:d.title.trim(),type:d.type,maturity:'work-in-progress',readiness:35,version:'v0.1',targetMeetingId:m.id,objective:d.objective.trim(),missingDependencies:d.missing.split('\n').map(x=>x.trim()).filter(Boolean),reviewAsk:d.reviewAsk.trim(),link:d.link.trim(),overworkWarning:''});if(!m.agenda.includes(state.deliverables.at(-1).id))m.agenda.push(state.deliverables.at(-1).id)});
+    if(addDeliverable)addDeliverable.onclick=()=>showModal('Nuevo entregable',`${field('Título','title','Ej.: nota de decisión — 1 página',true)}${selectField('Tema','topicId',topicOptions())}${selectField('Tipo','type','<option value="presentation">Presentación</option><option value="one-pager">One-pager</option><option value="dashboard">Dashboard</option><option value="report">Informe</option><option value="pdf">PDF</option><option value="demo">Demo</option>')}${area('Objetivo','objective','Qué debe entender o decidir Lucas')}${area('Pregunta / review ask','reviewAsk','Qué quieres obtener al mostrarlo')}${area('Por qué ahora','whyNow','Por qué merece tiempo en el próximo 1:1')}${area('Qué falta','missing','Una dependencia por línea')}${field('Link','link','https://...')}`,d=>{
+      state.deliverables.push({
+        id:uid('deliverable',d.title),topicId:d.topicId,title:d.title.trim(),type:d.type,
+        maturity:'work-in-progress',readiness:35,version:'v0.1',targetMeetingId:null,
+        objective:d.objective.trim(),reviewAsk:d.reviewAsk.trim(),whyNow:d.whyNow.trim(),selectionState:WeeklyCore.ACTIVE,
+        missingDependencies:d.missing.split('\n').map(x=>x.trim()).filter(Boolean),link:WeeklyCore.safeExternalUrl(d.link),overworkWarning:''
+      });
+    });
+
+    document.querySelectorAll('[data-edit-deliverable]').forEach(button=>button.onclick=()=>{
+      const d=state.deliverables.find(x=>x.id===button.dataset.editDeliverable);
+      if(!d)return;
+      showModal('Editar criterios',`${field('Título','title','',true,d.title)}${selectField('Tema','topicId',topicOptions(d.topicId))}${area('Objetivo','objective','Qué debe entender o decidir Lucas',d.objective)}${area('Pregunta / review ask','reviewAsk','Qué quieres obtener al mostrarlo',d.reviewAsk)}${area('Por qué ahora','whyNow','Por qué merece tiempo en el próximo 1:1',d.whyNow)}${area('Qué falta','missing','Una dependencia por línea',(d.missingDependencies||[]).join('\n'))}${field('Link','link','https://...',false,d.link||'')}`,form=>{
+        d.title=form.title.trim();d.topicId=form.topicId;d.objective=form.objective.trim();d.reviewAsk=form.reviewAsk.trim();d.whyNow=form.whyNow.trim();
+        d.missingDependencies=form.missing.split('\n').map(x=>x.trim()).filter(Boolean);d.link=WeeklyCore.safeExternalUrl(form.link);
+      });
+    });
+
     const addDecision=document.querySelector('[data-add-decision]');
     if(addDecision)addDecision.onclick=()=>showModal('Nueva pregunta para Lucas',`${selectField('Tema','topicId',topicOptions())}${area('Pregunta','question','Formula una decisión o validación concreta')}`,d=>{if(!d.question.trim())return;const m=meeting();state.decisions.push({id:uid('decision',d.question),topicId:d.topicId,meetingId:m.id,question:d.question.trim(),status:'planned'})});
   };

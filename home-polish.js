@@ -1,6 +1,6 @@
 homePage=function(){
   const m=meeting();
-  const target=state.deliverables.filter(d=>d.targetMeetingId===m.id);
+  const target=selectedDeliverables(m);
   const ready=target.filter(d=>d.maturity==='ready-to-show');
   const cooking=target.filter(d=>['candidate','work-in-progress'].includes(d.maturity));
   const asks=state.decisions.filter(d=>d.meetingId===m.id&&d.status==='planned');
@@ -19,12 +19,12 @@ homePage=function(){
     <div class="section-head"><h2>Listo para el próximo 1:1</h2></div>
     ${ready.length?listDeliverables(ready):'<div class="blank">Todavía no hay entregables listos.</div>'}
     <div class="section-head needs-lucas-head"><h2>Necesito de Lucas</h2></div>
-    ${asks.map(a=>`<a class="wide-card decision-card" href="#next"><span class="spark">?</span><b>${esc(a.question)}</b><span>›</span></a>`).join('')}
+    ${asks.length?asks.map(a=>`<a class="wide-card decision-card" href="#next"><span class="spark">?</span><b>${esc(a.question)}</b><span>›</span></a>`).join(''):'<div class="blank compact-blank">No hay decisiones registradas.</div>'}
     <div class="section-head"><h2>Todavía en preparación</h2></div>
     ${cooking.length?listDeliverables(cooking):'<div class="blank">Nada pendiente para esta reunión.</div>'}
-    <div class="section-head"><h2>No invertir tiempo antes del lunes en</h2></div>
+    <div class="section-head"><h2>No invertir tiempo antes del próximo 1:1 en</h2></div>
     <div class="quiet-list">${target.filter(d=>d.overworkWarning).map(d=>`<div class="quiet-item">${esc(d.overworkWarning)}</div>`).join('')}</div>
-    <div class="home-note"><b>Definición de listo:</b> se entiende en pocos minutos, tiene un objetivo explícito y termina en una pregunta o decisión.</div>
+    <div class="home-note"><b>Definición de listo:</b> se entiende en pocos minutos, tiene objetivo explícito y termina en una pregunta o decisión.</div>
   </section>`;
 };
 render();
