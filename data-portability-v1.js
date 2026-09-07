@@ -1,5 +1,5 @@
 (() => {
-  const BACKUP_VERSION = 1;
+  const BACKUP_VERSION = 2;
 
   function safeName() {
     const stamp = new Date().toISOString().slice(0, 10);
@@ -24,22 +24,14 @@
     URL.revokeObjectURL(url);
   }
 
-  function validState(candidate) {
-    return candidate && typeof candidate === 'object' &&
-      Array.isArray(candidate.meetings) &&
-      Array.isArray(candidate.topics) &&
-      Array.isArray(candidate.deliverables) &&
-      Array.isArray(candidate.decisions);
-  }
-
   function importBackup(file) {
     const reader = new FileReader();
     reader.onload = () => {
       try {
         const parsed = JSON.parse(reader.result);
         const candidate = parsed?.state || parsed;
-        if (!validState(candidate)) throw new Error('Formato de backup no reconocido');
-        state = candidate;
+        if (!WeeklyCore.validShape(candidate)) throw new Error('Formato de backup no reconocido');
+        state = WeeklyCore.normalizeAndMigrateState(candidate, seed);
         save();
         location.hash = '#home';
         render();
