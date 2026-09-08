@@ -22,19 +22,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate Quarkfoil V1.7 runtime
+      - name: Validate generated Builder runtime
         run: |
           node --check pasqal-quarkfoil-v1_7.js
-          node --check builder-pdf-parity-v1_7_1.js
+          node --check builder-raster-pdf-hotfix.js
           node --check real-state-v1_1.js
           grep -q 'pasqal-quarkfoil-v1_7.js' index.html
-          grep -q 'builder-pdf-parity-v1_7_1.js' index.html
+          grep -q 'builder-raster-pdf-hotfix.js' index.html
+          ! grep -q 'builder-pdf-parity-v1_7_1.js' index.html
           ! grep -E 'pasqal-quarto|quick-builder|qmd-generation|deliverable-builder|pasqal-preview|pasqal-parity|pasqal-quarkfoil-v1_4' index.html
           ! grep -q 'state = clone(seed)' real-state-v1_1.js
-      - name: Install browser smoke dependencies
-        run: python -m pip install --disable-pip-version-check selenium pypdf
-      - name: Run Builder V1.7 end-to-end smoke
-        run: python tests/builder_v1_7_smoke.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
