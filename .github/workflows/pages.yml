@@ -25,8 +25,10 @@ jobs:
       - name: Validate Quarkfoil V1.7 runtime
         run: |
           node --check pasqal-quarkfoil-v1_7.js
+          node --check builder-pdf-parity-v1_7_1.js
           node --check real-state-v1_1.js
           grep -q 'pasqal-quarkfoil-v1_7.js' index.html
+          grep -q 'builder-pdf-parity-v1_7_1.js' index.html
           ! grep -E 'pasqal-quarto|quick-builder|qmd-generation|deliverable-builder|pasqal-preview|pasqal-parity|pasqal-quarkfoil-v1_4' index.html
           ! grep -q 'state = clone(seed)' real-state-v1_1.js
       - name: Install browser smoke dependencies
