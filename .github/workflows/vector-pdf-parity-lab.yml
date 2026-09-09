@@ -1,0 +1,26 @@
+name: Vector PDF parity lab
+
+on:
+  push:
+    branches: [lab/vector-pdf-parity-20260909]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify lab runtime
+        run: |
+          node --check pasqal-quarkfoil-v1_7.js
+          node --check builder-vector-pdf-v1_7_2.js
+          grep -q 'builder-vector-pdf-v1_7_2.js' index.html
+          ! grep -q 'builder-raster-pdf-hotfix.js' index.html
+          grep -q '8bed44d3619bb1a4e6ce3b8dd2b17925830ca7b3' builder-vector-pdf-v1_7_2.js
+      - name: Install browser test dependencies
+        run: python -m pip install --disable-pip-version-check selenium pypdf pymupdf pillow
+      - name: Compare preview with vector PDF
+        run: python tests/builder_pdf_parity_smoke.py
