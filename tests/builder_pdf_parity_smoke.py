@@ -62,6 +62,14 @@ def current_slide_id(driver: webdriver.Chrome) -> str:
     )
 
 
+def set_exact_viewport(driver: webdriver.Chrome) -> None:
+    driver.execute_cdp_cmd(
+        "Emulation.setDeviceMetricsOverride",
+        {"width": 1280, "height": 720, "deviceScaleFactor": 1, "mobile": False},
+    )
+    driver.execute_script("window.dispatchEvent(new Event('resize'))")
+
+
 def metrics_for(driver: webdriver.Chrome, slide_id: str) -> dict:
     return driver.execute_script(
         """
@@ -72,16 +80,25 @@ def metrics_for(driver: webdriver.Chrome, slide_id: str) -> dict:
           if(!el)return null;
           const r=el.getBoundingClientRect();
           const c=getComputedStyle(el);
-          return {x:r.x,y:r.y,width:r.width,height:r.height,fontSize:c.fontSize,lineHeight:c.lineHeight,display:c.display,position:c.position};
+          return {
+            x:r.x,y:r.y,width:r.width,height:r.height,
+            offsetWidth:el.offsetWidth,offsetHeight:el.offsetHeight,
+            computedWidth:c.width,computedHeight:c.height,
+            fontSize:c.fontSize,lineHeight:c.lineHeight,
+            display:c.display,position:c.position,transform:c.transform
+          };
         };
         return {
           slide:pick(s),
+          parent:pick(s.parentElement),
           title:pick(s.querySelector('.slide-title')),
           heading:pick(s.querySelector('.slide-title h1,.slide-title h2,.slide-title h3')),
           core:pick(s.querySelector('.slide-core')),
           cell:pick(s.querySelector('.slide-cell')),
           classes:s.className,
-          htmlClasses:document.documentElement.className
+          htmlClasses:document.documentElement.className,
+          innerWidth:window.innerWidth,
+          innerHeight:window.innerHeight
         };
         """,
         slide_id,
@@ -103,7 +120,7 @@ def main() -> None:
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1280,720")
+    options.add_argument("--window-size=1280,900")
     options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
     driver = webdriver.Chrome(options=options)
     wait = WebDriverWait(driver, 60)
@@ -124,6 +141,16 @@ def main() -> None:
         preview_handle = next(iter(set(driver.window_handles) - before))
         driver.switch_to.window(preview_handle)
         wait.until(lambda d: "Quarkfoil PASQAL listo" in d.find_element(By.ID, "qf-local-status").text)
+        set_exact_viewport(driver)
+        wait.until(
+            lambda d: abs(
+                d.execute_script(
+                    "return document.querySelector('.scientific-slide.present')?.getBoundingClientRect().width || 0"
+                )
+                - 1280
+            )
+            < 1
+        )
         driver.execute_script(
             "const s=document.createElement('style');"
             "s.textContent='#qf-local-print,#qf-local-status,.controls,.progress,.slide-number{display:none!important}';"
