@@ -78,6 +78,23 @@ def logos_ok(driver: webdriver.Chrome) -> bool:
     )
 
 
+def css_page_contract_ok(driver: webdriver.Chrome) -> bool:
+    return bool(
+        driver.execute_script(
+            """
+            for (const sheet of [...document.styleSheets]) {
+              try {
+                for (const rule of [...sheet.cssRules]) {
+                  if (rule.type === CSSRule.PAGE_RULE && /13\.333333in\s+7\.5in/.test(rule.cssText)) return true;
+                }
+              } catch (_) {}
+            }
+            return false;
+            """
+        )
+    )
+
+
 def main() -> None:
     deck = FIXTURE.read_text(encoding="utf-8")
     handler = lambda *args, **kwargs: QuietHandler(*args, directory=str(ROOT), **kwargs)
@@ -160,14 +177,14 @@ def main() -> None:
         classes = driver.execute_script("return document.documentElement.className")
         assert "reveal-print" in classes, f"Reveal print mode missing: {classes!r}"
         assert "print-pdf" in classes, f"Reveal PDF class missing: {classes!r}"
-        assert driver.execute_script("return document.documentElement.dataset.qfVectorPdf") == "v1.7.2"
+        assert driver.execute_script("return document.documentElement.dataset.qfVectorPdf") == "v1.7.3"
+        assert css_page_contract_ok(driver), "Explicit 16:9 @page print contract missing"
         wait.until(logos_ok)
 
         pdf_data = driver.execute_cdp_cmd(
             "Page.printToPDF",
             {
                 "printBackground": True,
-                "landscape": True,
                 "marginTop": 0,
                 "marginBottom": 0,
                 "marginLeft": 0,
@@ -186,6 +203,7 @@ def main() -> None:
             width = float(page.mediabox.width)
             height = float(page.mediabox.height)
             ratio = width / height
+            assert width > height, f"PDF page is portrait: {width}x{height}"
             assert abs(ratio - 16 / 9) < 0.02, f"PDF page is not 16:9: {width}x{height}"
 
         extracted = "\n".join((page.extract_text() or "") for page in reader.pages)
@@ -205,7 +223,8 @@ def main() -> None:
 
         print(
             "BUILDER_PDF_PARITY_SMOKE=PASS "
-            f"pages={len(reader.pages)} max_mae={max(errors):.4f} mean_mae={statistics.mean(errors):.4f} logos=ok"
+            f"pages={len(reader.pages)} max_mae={max(errors):.4f} mean_mae={statistics.mean(errors):.4f} "
+            "logos=ok css_page=ok"
         )
     except Exception:
         for entry in driver.get_log("browser"):
