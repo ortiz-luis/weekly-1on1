@@ -122,7 +122,10 @@ def main() -> None:
         wait.until(lambda d: len(set(d.window_handles) - before) == 1)
         preview_handle = next(iter(set(driver.window_handles) - before))
         driver.switch_to.window(preview_handle)
-        wait.until(lambda d: "Quarkfoil PASQAL listo" in d.find_element(By.ID, "qf-local-status").text)
+        wait.until(lambda d: d.execute_script("return document.documentElement.dataset.qfPreviewPrintGuard === 'true'"))
+        assert not driver.find_elements(By.ID, "qf-local-print"), "Visualizar still exposes the broken local print button"
+        preview_status = driver.find_element(By.ID, "qf-local-status").text
+        assert "Generar PDF" in preview_status, f"Preview export guidance missing: {preview_status!r}"
         set_exact_viewport(driver)
         wait.until(
             lambda d: abs(
@@ -136,7 +139,7 @@ def main() -> None:
         wait.until(logos_ok)
         driver.execute_script(
             "const s=document.createElement('style');"
-            "s.textContent='#qf-local-print,#qf-local-status,.controls,.progress,.slide-number{display:none!important}';"
+            "s.textContent='#qf-local-status,.controls,.progress,.slide-number{display:none!important}';"
             "document.head.appendChild(s);"
         )
 
@@ -172,11 +175,10 @@ def main() -> None:
         classes = driver.execute_script("return document.documentElement.className")
         assert "reveal-print" in classes, f"Reveal print mode missing: {classes!r}"
         assert "print-pdf" in classes, f"Reveal PDF class missing: {classes!r}"
-        assert driver.execute_script("return document.documentElement.dataset.qfVectorPdf") == "v1.7.3"
+        assert driver.execute_script("return document.documentElement.dataset.qfVectorPdf") == "v1.7.4"
         assert css_page_contract_ok(driver), "Explicit 16:9 @page print contract missing"
         wait.until(logos_ok)
 
-        # Deliberately do not force landscape or a paper size. CSS must define the page.
         pdf_data = driver.execute_cdp_cmd(
             "Page.printToPDF",
             {
@@ -192,9 +194,7 @@ def main() -> None:
         pdf_path.write_bytes(pdf_bytes)
 
         reader = PdfReader(io.BytesIO(pdf_bytes))
-        assert len(reader.pages) == len(EXPECTED_IDS), (
-            f"Expected {len(EXPECTED_IDS)} PDF pages, got {len(reader.pages)}"
-        )
+        assert len(reader.pages) == len(EXPECTED_IDS), f"Expected {len(EXPECTED_IDS)} PDF pages, got {len(reader.pages)}"
         for page in reader.pages:
             width = float(page.mediabox.width)
             height = float(page.mediabox.height)
@@ -220,7 +220,7 @@ def main() -> None:
         print(
             "BUILDER_PDF_PARITY_SMOKE=PASS "
             f"pages={len(reader.pages)} max_mae={max(errors):.4f} mean_mae={statistics.mean(errors):.4f} "
-            "logos=ok css_page=ok"
+            "logos=ok css_page=ok preview_guard=ok"
         )
     except Exception:
         for entry in driver.get_log("browser"):
