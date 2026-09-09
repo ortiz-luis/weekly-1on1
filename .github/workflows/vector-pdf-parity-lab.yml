@@ -16,10 +16,12 @@ jobs:
       - name: Verify lab runtime
         run: |
           node --check pasqal-quarkfoil-v1_7.js
-          node --check builder-vector-pdf-v1_7_2.js
-          grep -q 'builder-vector-pdf-v1_7_2.js' index.html
+          node --check builder-vector-pdf-v1_7_3.js
+          grep -q 'builder-vector-pdf-v1_7_3.js' index.html
+          ! grep -q 'builder-vector-pdf-v1_7_2.js' index.html
           ! grep -q 'builder-raster-pdf-hotfix.js' index.html
-          grep -q '8bed44d3619bb1a4e6ce3b8dd2b17925830ca7b3' builder-vector-pdf-v1_7_2.js
+          grep -q '@page{size:13.333333in 7.5in;margin:0}' builder-vector-pdf-v1_7_3.js
+          grep -q '8bed44d3619bb1a4e6ce3b8dd2b17925830ca7b3' builder-vector-pdf-v1_7_3.js
       - name: Install browser test dependencies
         run: python -m pip install --disable-pip-version-check selenium pypdf pymupdf pillow
       - name: Compare preview with vector PDF
