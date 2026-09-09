@@ -129,7 +129,7 @@
   function printDocumentHtml(title,slidesHtml){
     const base=QUARKFOIL_BASE;
     return `<!doctype html>
-<html lang="en" data-qf-vector-pdf="v1.7.2">
+<html lang="en" data-qf-vector-pdf="v1.7.3">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -140,9 +140,13 @@
   <link rel="stylesheet" href="${base}/styles/themes.css">
   <link rel="stylesheet" href="${base}/styles/player.css">
   <style>
+    @page{size:13.333333in 7.5in;margin:0}
     html,body{margin:0;background:#fff}
     #qf-vector-status{position:fixed;z-index:9999;left:18px;bottom:18px;padding:8px 11px;border-radius:9px;background:rgba(15,30,35,.9);color:#fff;font:12px system-ui}
-    @media print{#qf-vector-status{display:none!important}}
+    @media print{
+      html,body{width:13.333333in!important;margin:0!important;padding:0!important}
+      #qf-vector-status{display:none!important}
+    }
   </style>
 </head>
 <body>
@@ -211,14 +215,14 @@
     await waitFor(()=>popup.document?.documentElement?.dataset?.qfPdfReady==='true'||popup.document?.documentElement?.dataset?.qfPdfError);
     const error=popup.document.documentElement.dataset.qfPdfError;
     if(error)throw new Error(error);
-    setStatus('ok','PDF vectorial listo desde el mismo DOM del preview. Usa “Guardar como PDF”.');
+    setStatus('ok','PDF vectorial listo en página 16:9. Usa “Guardar como PDF”.');
   }
 
   function install(){
     armDirectPreviewLogoFix();
     const button=document.getElementById('qf-pdf');
-    if(!button||button.dataset.vectorPdfV172)return;
-    button.dataset.vectorPdfV172='1';
+    if(!button||button.dataset.vectorPdfV173)return;
+    button.dataset.vectorPdfV173='1';
     button.addEventListener('click',async event=>{
       if(button.dataset.vectorPdfBusy==='1')return;
       event.preventDefault();
