@@ -3,11 +3,12 @@ from __future__ import annotations
 import base64
 import http.server
 import io
+import shutil
 import statistics
 import threading
 from pathlib import Path
 
-import fitz
+import pymupdf
 from PIL import Image, ImageChops, ImageFilter, ImageStat
 from pypdf import PdfReader
 from selenium import webdriver
@@ -17,6 +18,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests" / "fixtures" / "builder_pdf_parity_deck.md"
+DIAG = ROOT / "_pdf_parity_diagnostics"
 EXPECTED_IDS = [
     "pasqal-front",
     "pasqal-agenda",
@@ -40,13 +42,13 @@ def normalized_mae(left_png: bytes, right_png: bytes) -> float:
 
 
 def render_pdf_pages(pdf_bytes: bytes) -> list[bytes]:
-    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
     rendered: list[bytes] = []
     try:
         for page in doc:
             sx = 1280.0 / page.rect.width
             sy = 720.0 / page.rect.height
-            pix = page.get_pixmap(matrix=fitz.Matrix(sx, sy), alpha=False)
+            pix = page.get_pixmap(matrix=pymupdf.Matrix(sx, sy), alpha=False)
             rendered.append(pix.tobytes("png"))
     finally:
         doc.close()
@@ -60,6 +62,10 @@ def current_slide_id(driver: webdriver.Chrome) -> str:
 
 
 def main() -> None:
+    if DIAG.exists():
+        shutil.rmtree(DIAG)
+    DIAG.mkdir()
+
     deck = FIXTURE.read_text(encoding="utf-8")
     handler = lambda *args, **kwargs: QuietHandler(*args, directory=str(ROOT), **kwargs)
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
@@ -74,7 +80,6 @@ def main() -> None:
     options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
     driver = webdriver.Chrome(options=options)
     wait = WebDriverWait(driver, 60)
-    pdf_path = ROOT / "builder-pdf-parity-smoke.pdf"
 
     try:
         driver.get(f"http://127.0.0.1:{server.server_port}/#builder")
@@ -101,7 +106,9 @@ def main() -> None:
         preview_pngs: list[bytes] = []
         for index, expected_id in enumerate(EXPECTED_IDS):
             wait.until(lambda d, value=expected_id: current_slide_id(d) == value)
-            preview_pngs.append(driver.find_element(By.CSS_SELECTOR, ".reveal").screenshot_as_png)
+            png = driver.find_element(By.CSS_SELECTOR, ".reveal").screenshot_as_png
+            preview_pngs.append(png)
+            (DIAG / f"{index + 1:02d}_{expected_id}_preview.png").write_bytes(png)
             if index < len(EXPECTED_IDS) - 1:
                 driver.execute_script("document.querySelector('.navigate-right')?.click()")
 
@@ -139,7 +146,7 @@ def main() -> None:
             },
         )["data"]
         pdf_bytes = base64.b64decode(pdf_data)
-        pdf_path.write_bytes(pdf_bytes)
+        (DIAG / "vector-output.pdf").write_bytes(pdf_bytes)
 
         reader = PdfReader(io.BytesIO(pdf_bytes))
         assert len(reader.pages) == len(EXPECTED_IDS), (
@@ -152,6 +159,7 @@ def main() -> None:
             assert abs(ratio - 16 / 9) < 0.02, f"PDF page is not 16:9: {width}x{height}"
 
         extracted = "\n".join((page.extract_text() or "") for page in reader.pages)
+        (DIAG / "extracted-text.txt").write_text(extracted, encoding="utf-8")
         for phrase in [
             "PDF parity regression",
             "Evidence and interpretation",
@@ -162,7 +170,17 @@ def main() -> None:
 
         pdf_pngs = render_pdf_pages(pdf_bytes)
         assert len(pdf_pngs) == len(preview_pngs)
-        errors = [normalized_mae(preview, pdf) for preview, pdf in zip(preview_pngs, pdf_pngs)]
+        errors: list[float] = []
+        for index, (expected_id, preview, pdf) in enumerate(zip(EXPECTED_IDS, preview_pngs, pdf_pngs)):
+            (DIAG / f"{index + 1:02d}_{expected_id}_pdf.png").write_bytes(pdf)
+            errors.append(normalized_mae(preview, pdf))
+
+        metrics = "\n".join(
+            f"{expected_id}: {error:.6f}" for expected_id, error in zip(EXPECTED_IDS, errors)
+        ) + f"\nmax: {max(errors):.6f}\nmean: {statistics.mean(errors):.6f}\n"
+        (DIAG / "metrics.txt").write_text(metrics, encoding="utf-8")
+        print(metrics)
+
         assert max(errors) < 0.18, f"Preview/PDF page divergence too high: {errors}"
         assert statistics.mean(errors) < 0.12, f"Preview/PDF mean divergence too high: {errors}"
 
@@ -179,8 +197,6 @@ def main() -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
-        if pdf_path.exists():
-            pdf_path.unlink()
 
 
 if __name__ == "__main__":
