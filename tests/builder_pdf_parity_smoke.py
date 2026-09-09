@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import http.server
 import io
+import json
 import shutil
 import statistics
 import threading
@@ -61,6 +62,32 @@ def current_slide_id(driver: webdriver.Chrome) -> str:
     )
 
 
+def metrics_for(driver: webdriver.Chrome, slide_id: str) -> dict:
+    return driver.execute_script(
+        """
+        const id=arguments[0];
+        const s=document.querySelector(`[data-slide-id="${id}"]`);
+        if(!s)return null;
+        const pick=(el)=>{
+          if(!el)return null;
+          const r=el.getBoundingClientRect();
+          const c=getComputedStyle(el);
+          return {x:r.x,y:r.y,width:r.width,height:r.height,fontSize:c.fontSize,lineHeight:c.lineHeight,display:c.display,position:c.position};
+        };
+        return {
+          slide:pick(s),
+          title:pick(s.querySelector('.slide-title')),
+          heading:pick(s.querySelector('.slide-title h1,.slide-title h2,.slide-title h3')),
+          core:pick(s.querySelector('.slide-core')),
+          cell:pick(s.querySelector('.slide-cell')),
+          classes:s.className,
+          htmlClasses:document.documentElement.className
+        };
+        """,
+        slide_id,
+    )
+
+
 def main() -> None:
     if DIAG.exists():
         shutil.rmtree(DIAG)
@@ -99,13 +126,15 @@ def main() -> None:
         wait.until(lambda d: "Quarkfoil PASQAL listo" in d.find_element(By.ID, "qf-local-status").text)
         driver.execute_script(
             "const s=document.createElement('style');"
-            "s.textContent='.controls,.progress,.slide-number{display:none!important}';"
+            "s.textContent='#qf-local-print,#qf-local-status,.controls,.progress,.slide-number{display:none!important}';"
             "document.head.appendChild(s);"
         )
 
         preview_pngs: list[bytes] = []
+        preview_metrics: dict[str, dict] = {}
         for index, expected_id in enumerate(EXPECTED_IDS):
             wait.until(lambda d, value=expected_id: current_slide_id(d) == value)
+            preview_metrics[expected_id] = metrics_for(driver, expected_id)
             png = driver.find_element(By.CSS_SELECTOR, ".reveal").screenshot_as_png
             preview_pngs.append(png)
             (DIAG / f"{index + 1:02d}_{expected_id}_preview.png").write_bytes(png)
@@ -132,6 +161,11 @@ def main() -> None:
         assert "reveal-print" in classes, f"Reveal print mode missing: {classes!r}"
         assert "print-pdf" in classes, f"Reveal PDF class missing: {classes!r}"
         assert driver.execute_script("return document.documentElement.dataset.qfVectorPdf") == "v1.7.2"
+
+        print_metrics = {slide_id: metrics_for(driver, slide_id) for slide_id in EXPECTED_IDS}
+        (DIAG / "dom-metrics.json").write_text(
+            json.dumps({"preview": preview_metrics, "print": print_metrics}, indent=2), encoding="utf-8"
+        )
 
         pdf_data = driver.execute_cdp_cmd(
             "Page.printToPDF",
