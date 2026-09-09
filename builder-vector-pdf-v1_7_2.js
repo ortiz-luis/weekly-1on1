@@ -1,8 +1,10 @@
 (()=>{
   const QUARKFOIL_COMMIT='8bed44d3619bb1a4e6ce3b8dd2b17925830ca7b3';
   const QUARKFOIL_BASE=`https://cdn.jsdelivr.net/gh/ortiz-luis/quarkfoil@${QUARKFOIL_COMMIT}/app`;
+  const PASQAL_LOGO=`${QUARKFOIL_BASE}/assets/pasqal-logo-light.svg`;
   const READY_TEXT='Quarkfoil PASQAL listo';
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  let internalPreviewOpen=false;
 
   function setStatus(kind,text){
     const el=document.getElementById('qf-status');
@@ -36,6 +38,41 @@
     throw new Error('Timeout esperando el render de Quarkfoil.');
   }
 
+  function fixPasqalLogos(root){
+    root?.querySelectorAll?.('.pasqal-logo').forEach(image=>image.setAttribute('src',PASQAL_LOGO));
+  }
+
+  async function waitAndFixPreview(previewWindow){
+    try{
+      await waitFor(()=>previewWindow.document?.getElementById('qf-local-status')?.textContent?.includes(READY_TEXT));
+      fixPasqalLogos(previewWindow.document);
+      await waitFor(()=>[...previewWindow.document.querySelectorAll('.pasqal-logo')].every(image=>image.complete),10000);
+    }catch{}
+  }
+
+  function armDirectPreviewLogoFix(){
+    const preview=document.getElementById('qf-preview');
+    if(!preview||preview.dataset.vectorPdfLogoFix)return;
+    preview.dataset.vectorPdfLogoFix='1';
+    preview.addEventListener('click',()=>{
+      if(internalPreviewOpen)return;
+      const originalOpen=window.open;
+      let restored=false;
+      const restore=()=>{
+        if(restored)return;
+        restored=true;
+        window.open=originalOpen;
+      };
+      window.open=(...args)=>{
+        const opened=originalOpen.apply(window,args);
+        restore();
+        if(opened)void waitAndFixPreview(opened);
+        return opened;
+      };
+      setTimeout(restore,12000);
+    },true);
+  }
+
   function openPreviewInto(popup){
     const preview=document.getElementById('qf-preview');
     if(!preview)throw new Error('No encuentro el botón Visualizar.');
@@ -61,7 +98,8 @@
           return null;
         }
       };
-      preview.click();
+      internalPreviewOpen=true;
+      try{preview.click();}finally{internalPreviewOpen=false;}
       timer=setTimeout(()=>{
         restore();
         reject(new Error('El preview no abrió su documento a tiempo.'));
@@ -74,6 +112,7 @@
     if(!source)throw new Error('No encontré el DOM renderizado de las slides.');
     const clone=source.cloneNode(true);
     clone.querySelectorAll('aside.notes,.speaker-notes,[data-speaker-notes]').forEach(node=>node.remove());
+    clone.querySelectorAll('.pasqal-logo').forEach(image=>image.setAttribute('src',PASQAL_LOGO));
     clone.querySelectorAll('section').forEach(section=>{
       section.classList.remove('present','past','future');
       section.removeAttribute('hidden');
@@ -162,6 +201,8 @@
     setStatus('busy','Preparando PDF vectorial con la vista print real de Quarkfoil/Reveal…');
     const previewWindow=await openPreviewInto(popup);
     await waitFor(()=>previewWindow.document?.getElementById('qf-local-status')?.textContent?.includes(READY_TEXT));
+    fixPasqalLogos(previewWindow.document);
+    await waitFor(()=>[...previewWindow.document.querySelectorAll('.pasqal-logo')].every(image=>image.complete),10000);
     const slidesHtml=cloneRenderedSlides(previewWindow);
     const title=previewWindow.document.title||'PASQAL presentation';
     popup.document.open();
@@ -174,6 +215,7 @@
   }
 
   function install(){
+    armDirectPreviewLogoFix();
     const button=document.getElementById('qf-pdf');
     if(!button||button.dataset.vectorPdfV172)return;
     button.dataset.vectorPdfV172='1';
