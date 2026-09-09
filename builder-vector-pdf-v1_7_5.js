@@ -26,6 +26,52 @@
       .replaceAll('&','\\u0026');
   }
 
+  function slideIdentity(index,title){
+    const clean=String(title||'').replace(/[\*_`]/g,'').trim();
+    if(index===1)return {id:'pasqal-front',layout:'.layout-front',footerNone:true};
+    if(/^agenda$/i.test(clean))return {id:'pasqal-agenda',layout:'.layout-1',footerNone:false};
+    if(/^(thank you|merci|gracias)$/i.test(clean))return {id:'pasqal-closing',layout:'.layout-1',footerNone:true};
+    if(/decision|next step|siguiente paso/i.test(clean))return {id:`pasqal-dark-${index}`,layout:'.layout-1',footerNone:false};
+    if(/reference|référence|referencia/i.test(clean))return {id:`pasqal-references-${index}`,layout:'.layout-1',footerNone:false};
+    return {id:`pasqal-content-${index}`,layout:'.layout-1',footerNone:false};
+  }
+
+  function normalizeDeckSlideIds(text){
+    const src=String(text??'');
+    const front=src.match(/^(---\r?\n[\s\S]*?\r?\n---\r?\n?)/);
+    const prefix=front?front[1]:'';
+    const body=front?src.slice(prefix.length):src;
+    const pieces=body.split(/(\r?\n---\r?\n)/);
+    let slide=0;
+    for(let i=0;i<pieces.length;i+=2){
+      const chunk=pieces[i];
+      if(!chunk||!chunk.trim())continue;
+      const match=chunk.match(/^(\s*)(#{1,2})\s+(.+?)(?:\s+\{([^}]*)\})?\s*$/m);
+      if(!match)continue;
+      slide++;
+      const [whole,indent,hash,title,rawAttrs='']=match;
+      const identity=slideIdentity(slide,title);
+      const existingPasqal=(rawAttrs.match(/#(pasqal-[^\s}]+)/)||[])[1];
+      const id=existingPasqal||identity.id;
+      let kept=rawAttrs.replace(/#\S+/g,'').trim();
+      if(!/\.layout-[^\s}]+/.test(kept))kept=[kept,identity.layout].filter(Boolean).join(' ');
+      if(identity.footerNone&&!/\bfooter\s*=/.test(kept))kept=[kept,'footer="none"'].filter(Boolean).join(' ');
+      const attrs=`#${id}${kept?` ${kept}`:''}`;
+      const replacement=`${indent}${hash} ${title.trim()} {${attrs}}`;
+      pieces[i]=chunk.replace(whole,replacement);
+    }
+    return prefix+pieces.join('');
+  }
+
+  function normalizeEditorSlideIds(){
+    const editor=document.getElementById('qf-editor');
+    if(!editor)return;
+    const normalized=normalizeDeckSlideIds(editor.value);
+    if(normalized===editor.value)return;
+    editor.value=normalized;
+    editor.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+
   async function waitFor(fn,timeoutMs=30000){
     const started=Date.now();
     while(Date.now()-started<timeoutMs){
@@ -72,6 +118,7 @@
     preview.dataset.vectorPdfPreviewFix='1';
     preview.addEventListener('click',()=>{
       if(internalPreviewOpen)return;
+      normalizeEditorSlideIds();
       const originalOpen=window.open;
       let restored=false;
       const restore=()=>{
@@ -145,7 +192,7 @@
   function printDocumentHtml(title,slidesHtml){
     const base=QUARKFOIL_BASE;
     return `<!doctype html>
-<html lang="en" data-qf-vector-pdf="v1.7.4">
+<html lang="en" data-qf-vector-pdf="v1.7.5">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -237,13 +284,14 @@
   function install(){
     armDirectPreviewFixes();
     const button=document.getElementById('qf-pdf');
-    if(!button||button.dataset.vectorPdfV174)return;
-    button.dataset.vectorPdfV174='1';
+    if(!button||button.dataset.vectorPdfV175)return;
+    button.dataset.vectorPdfV175='1';
     button.addEventListener('click',async event=>{
       if(button.dataset.vectorPdfBusy==='1')return;
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
+      normalizeEditorSlideIds();
       const popup=window.open('about:blank','_blank');
       if(!popup){
         setStatus('error','El navegador bloqueó la pestaña PDF.');
