@@ -42,18 +42,34 @@
     root?.querySelectorAll?.('.pasqal-logo').forEach(image=>image.setAttribute('src',PASQAL_LOGO));
   }
 
+  function guardDirectPreview(previewWindow){
+    const doc=previewWindow?.document;
+    if(!doc)return;
+    doc.getElementById('qf-local-print')?.remove();
+    if(!doc.getElementById('qf-preview-print-guard')){
+      const style=doc.createElement('style');
+      style.id='qf-preview-print-guard';
+      style.textContent='@media print{body>*{display:none!important}body::before{display:block!important;white-space:pre-wrap;padding:32px;font:18px/1.45 system-ui;color:#173035;content:"Preview only. Return to the Builder and use Generar PDF."}}';
+      doc.head.appendChild(style);
+    }
+    const status=doc.getElementById('qf-local-status');
+    if(status)status.textContent='Quarkfoil PASQAL listo · Preview only. Para exportar, vuelve al Builder y usa “Generar PDF”.';
+    doc.documentElement.dataset.qfPreviewPrintGuard='true';
+  }
+
   async function waitAndFixPreview(previewWindow){
     try{
       await waitFor(()=>previewWindow.document?.getElementById('qf-local-status')?.textContent?.includes(READY_TEXT));
       fixPasqalLogos(previewWindow.document);
       await waitFor(()=>[...previewWindow.document.querySelectorAll('.pasqal-logo')].every(image=>image.complete),10000);
+      guardDirectPreview(previewWindow);
     }catch{}
   }
 
-  function armDirectPreviewLogoFix(){
+  function armDirectPreviewFixes(){
     const preview=document.getElementById('qf-preview');
-    if(!preview||preview.dataset.vectorPdfLogoFix)return;
-    preview.dataset.vectorPdfLogoFix='1';
+    if(!preview||preview.dataset.vectorPdfPreviewFix)return;
+    preview.dataset.vectorPdfPreviewFix='1';
     preview.addEventListener('click',()=>{
       if(internalPreviewOpen)return;
       const originalOpen=window.open;
@@ -129,7 +145,7 @@
   function printDocumentHtml(title,slidesHtml){
     const base=QUARKFOIL_BASE;
     return `<!doctype html>
-<html lang="en" data-qf-vector-pdf="v1.7.3">
+<html lang="en" data-qf-vector-pdf="v1.7.4">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -219,10 +235,10 @@
   }
 
   function install(){
-    armDirectPreviewLogoFix();
+    armDirectPreviewFixes();
     const button=document.getElementById('qf-pdf');
-    if(!button||button.dataset.vectorPdfV173)return;
-    button.dataset.vectorPdfV173='1';
+    if(!button||button.dataset.vectorPdfV174)return;
+    button.dataset.vectorPdfV174='1';
     button.addEventListener('click',async event=>{
       if(button.dataset.vectorPdfBusy==='1')return;
       event.preventDefault();
