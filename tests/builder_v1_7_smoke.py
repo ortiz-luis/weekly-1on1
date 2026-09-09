@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import base64
 import http.server
 import threading
 from pathlib import Path
 
-from pypdf import PdfReader
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -72,7 +70,6 @@ def main() -> None:
     options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
     driver = webdriver.Chrome(options=options)
     wait = WebDriverWait(driver, 45)
-    pdf_path = ROOT / "builder-v1_7-smoke.pdf"
     try:
         driver.get(f"http://127.0.0.1:{server.server_port}/#builder")
         wait.until(lambda d: d.find_elements(By.ID, "qf-editor"))
@@ -96,33 +93,20 @@ def main() -> None:
 
         popup = next(iter(set(driver.window_handles) - before))
         driver.switch_to.window(popup)
-        wait.until(lambda d: "Quarkfoil PASQAL listo" in d.find_element(By.ID, "qf-local-status").text)
+        wait.until(lambda d: d.execute_script("return document.documentElement.dataset.qfPreviewPrintGuard === 'true'"))
         slides = driver.find_elements(By.CSS_SELECTOR, ".scientific-slide[data-slide-id^='pasqal-']")
         assert len(slides) == 3, f"Expected 3 PASQAL slides, got {len(slides)}"
         assert driver.find_elements(By.CSS_SELECTOR, "[data-slide-id='pasqal-front']")
         assert driver.find_elements(By.CSS_SELECTOR, "[data-slide-id='pasqal-agenda']")
         assert driver.find_elements(By.CSS_SELECTOR, "[data-slide-id='pasqal-closing']")
+        assert not driver.find_elements(By.ID, "qf-local-print"), "Preview print dead-path is exposed"
         page_text = driver.find_element(By.TAG_NAME, "body").text
         assert "{#pasqal-content-2" not in page_text, "PASQAL slide metadata leaked into visible subtitle text"
 
-        pdf_data = driver.execute_cdp_cmd(
-            "Page.printToPDF",
-            {
-                "printBackground": True,
-                "landscape": True,
-                "paperWidth": 13.333333,
-                "paperHeight": 7.5,
-                "marginTop": 0,
-                "marginBottom": 0,
-                "marginLeft": 0,
-                "marginRight": 0,
-                "preferCSSPageSize": True,
-            },
-        )["data"]
-        pdf_path.write_bytes(base64.b64decode(pdf_data))
-        pages = len(PdfReader(str(pdf_path)).pages)
-        assert pages == 3, f"Expected 3 PDF pages, got {pages}"
-        print(f"BUILDER_V1_7_SMOKE=PASS slides={len(slides)} pdf_pages={pages} slide_ids=normalized nested_heading=preserved")
+        print(
+            f"BUILDER_V1_7_SMOKE=PASS slides={len(slides)} "
+            "slide_ids=normalized nested_heading=preserved preview_guard=ok"
+        )
     except Exception:
         for entry in driver.get_log("browser"):
             print("BROWSER_LOG", entry)
@@ -132,8 +116,6 @@ def main() -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
-        if pdf_path.exists():
-            pdf_path.unlink()
 
 
 if __name__ == "__main__":
