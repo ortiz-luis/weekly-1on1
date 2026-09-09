@@ -82,14 +82,9 @@ def css_page_contract_ok(driver: webdriver.Chrome) -> bool:
     return bool(
         driver.execute_script(
             """
-            for (const sheet of [...document.styleSheets]) {
-              try {
-                for (const rule of [...sheet.cssRules]) {
-                  if (rule.type === CSSRule.PAGE_RULE && /13\.333333in\s+7\.5in/.test(rule.cssText)) return true;
-                }
-              } catch (_) {}
-            }
-            return false;
+            return [...document.querySelectorAll('style')].some(style =>
+              style.textContent.includes('@page{size:13.333333in 7.5in;margin:0}')
+            );
             """
         )
     )
@@ -181,6 +176,7 @@ def main() -> None:
         assert css_page_contract_ok(driver), "Explicit 16:9 @page print contract missing"
         wait.until(logos_ok)
 
+        # Deliberately do not force landscape or a paper size. CSS must define the page.
         pdf_data = driver.execute_cdp_cmd(
             "Page.printToPDF",
             {
