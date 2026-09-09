@@ -175,7 +175,7 @@ def main() -> None:
         classes = driver.execute_script("return document.documentElement.className")
         assert "reveal-print" in classes, f"Reveal print mode missing: {classes!r}"
         assert "print-pdf" in classes, f"Reveal PDF class missing: {classes!r}"
-        assert driver.execute_script("return document.documentElement.dataset.qfVectorPdf") == "v1.7.4"
+        assert driver.execute_script("return document.documentElement.dataset.qfVectorPdf") == "v1.7.5"
         assert css_page_contract_ok(driver), "Explicit 16:9 @page print contract missing"
         wait.until(logos_ok)
 
@@ -194,7 +194,9 @@ def main() -> None:
         pdf_path.write_bytes(pdf_bytes)
 
         reader = PdfReader(io.BytesIO(pdf_bytes))
-        assert len(reader.pages) == len(EXPECTED_IDS), f"Expected {len(EXPECTED_IDS)} PDF pages, got {len(reader.pages)}"
+        assert len(reader.pages) == len(EXPECTED_IDS), (
+            f"Expected {len(EXPECTED_IDS)} PDF pages, got {len(reader.pages)}"
+        )
         for page in reader.pages:
             width = float(page.mediabox.width)
             height = float(page.mediabox.height)
