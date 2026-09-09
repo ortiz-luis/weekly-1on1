@@ -3,8 +3,6 @@ from __future__ import annotations
 import base64
 import http.server
 import io
-import json
-import shutil
 import statistics
 import threading
 from pathlib import Path
@@ -19,7 +17,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests" / "fixtures" / "builder_pdf_parity_deck.md"
-DIAG = ROOT / "_pdf_parity_diagnostics"
 EXPECTED_IDS = [
     "pasqal-front",
     "pasqal-agenda",
@@ -70,46 +67,18 @@ def set_exact_viewport(driver: webdriver.Chrome) -> None:
     driver.execute_script("window.dispatchEvent(new Event('resize'))")
 
 
-def metrics_for(driver: webdriver.Chrome, slide_id: str) -> dict:
-    return driver.execute_script(
-        """
-        const id=arguments[0];
-        const s=document.querySelector(`[data-slide-id="${id}"]`);
-        if(!s)return null;
-        const pick=(el)=>{
-          if(!el)return null;
-          const r=el.getBoundingClientRect();
-          const c=getComputedStyle(el);
-          return {
-            x:r.x,y:r.y,width:r.width,height:r.height,
-            offsetWidth:el.offsetWidth,offsetHeight:el.offsetHeight,
-            computedWidth:c.width,computedHeight:c.height,
-            fontSize:c.fontSize,lineHeight:c.lineHeight,
-            display:c.display,position:c.position,transform:c.transform
-          };
-        };
-        return {
-          slide:pick(s),
-          parent:pick(s.parentElement),
-          title:pick(s.querySelector('.slide-title')),
-          heading:pick(s.querySelector('.slide-title h1,.slide-title h2,.slide-title h3')),
-          core:pick(s.querySelector('.slide-core')),
-          cell:pick(s.querySelector('.slide-cell')),
-          classes:s.className,
-          htmlClasses:document.documentElement.className,
-          innerWidth:window.innerWidth,
-          innerHeight:window.innerHeight
-        };
-        """,
-        slide_id,
+def logos_ok(driver: webdriver.Chrome) -> bool:
+    return bool(
+        driver.execute_script(
+            """
+            const logos=[...document.querySelectorAll('.pasqal-logo')];
+            return logos.length>0 && logos.every(img=>img.complete && img.naturalWidth>0);
+            """
+        )
     )
 
 
 def main() -> None:
-    if DIAG.exists():
-        shutil.rmtree(DIAG)
-    DIAG.mkdir()
-
     deck = FIXTURE.read_text(encoding="utf-8")
     handler = lambda *args, **kwargs: QuietHandler(*args, directory=str(ROOT), **kwargs)
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
@@ -124,6 +93,7 @@ def main() -> None:
     options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
     driver = webdriver.Chrome(options=options)
     wait = WebDriverWait(driver, 60)
+    pdf_path = ROOT / "builder-pdf-parity-smoke.pdf"
 
     try:
         driver.get(f"http://127.0.0.1:{server.server_port}/#builder")
@@ -151,6 +121,7 @@ def main() -> None:
             )
             < 1
         )
+        wait.until(logos_ok)
         driver.execute_script(
             "const s=document.createElement('style');"
             "s.textContent='#qf-local-print,#qf-local-status,.controls,.progress,.slide-number{display:none!important}';"
@@ -158,13 +129,15 @@ def main() -> None:
         )
 
         preview_pngs: list[bytes] = []
-        preview_metrics: dict[str, dict] = {}
         for index, expected_id in enumerate(EXPECTED_IDS):
             wait.until(lambda d, value=expected_id: current_slide_id(d) == value)
-            preview_metrics[expected_id] = metrics_for(driver, expected_id)
-            png = driver.find_element(By.CSS_SELECTOR, ".reveal").screenshot_as_png
-            preview_pngs.append(png)
-            (DIAG / f"{index + 1:02d}_{expected_id}_preview.png").write_bytes(png)
+            slide = driver.find_element(By.CSS_SELECTOR, ".scientific-slide.present")
+            rect = driver.execute_script(
+                "const r=arguments[0].getBoundingClientRect(); return {width:r.width,height:r.height};", slide
+            )
+            assert abs(rect["width"] - 1280) < 1, f"Preview width drifted: {rect}"
+            assert abs(rect["height"] - 720) < 2, f"Preview height drifted: {rect}"
+            preview_pngs.append(slide.screenshot_as_png)
             if index < len(EXPECTED_IDS) - 1:
                 driver.execute_script("document.querySelector('.navigate-right')?.click()")
 
@@ -188,11 +161,7 @@ def main() -> None:
         assert "reveal-print" in classes, f"Reveal print mode missing: {classes!r}"
         assert "print-pdf" in classes, f"Reveal PDF class missing: {classes!r}"
         assert driver.execute_script("return document.documentElement.dataset.qfVectorPdf") == "v1.7.2"
-
-        print_metrics = {slide_id: metrics_for(driver, slide_id) for slide_id in EXPECTED_IDS}
-        (DIAG / "dom-metrics.json").write_text(
-            json.dumps({"preview": preview_metrics, "print": print_metrics}, indent=2), encoding="utf-8"
-        )
+        wait.until(logos_ok)
 
         pdf_data = driver.execute_cdp_cmd(
             "Page.printToPDF",
@@ -207,7 +176,7 @@ def main() -> None:
             },
         )["data"]
         pdf_bytes = base64.b64decode(pdf_data)
-        (DIAG / "vector-output.pdf").write_bytes(pdf_bytes)
+        pdf_path.write_bytes(pdf_bytes)
 
         reader = PdfReader(io.BytesIO(pdf_bytes))
         assert len(reader.pages) == len(EXPECTED_IDS), (
@@ -220,7 +189,6 @@ def main() -> None:
             assert abs(ratio - 16 / 9) < 0.02, f"PDF page is not 16:9: {width}x{height}"
 
         extracted = "\n".join((page.extract_text() or "") for page in reader.pages)
-        (DIAG / "extracted-text.txt").write_text(extracted, encoding="utf-8")
         for phrase in [
             "PDF parity regression",
             "Evidence and interpretation",
@@ -231,23 +199,13 @@ def main() -> None:
 
         pdf_pngs = render_pdf_pages(pdf_bytes)
         assert len(pdf_pngs) == len(preview_pngs)
-        errors: list[float] = []
-        for index, (expected_id, preview, pdf) in enumerate(zip(EXPECTED_IDS, preview_pngs, pdf_pngs)):
-            (DIAG / f"{index + 1:02d}_{expected_id}_pdf.png").write_bytes(pdf)
-            errors.append(normalized_mae(preview, pdf))
-
-        metrics = "\n".join(
-            f"{expected_id}: {error:.6f}" for expected_id, error in zip(EXPECTED_IDS, errors)
-        ) + f"\nmax: {max(errors):.6f}\nmean: {statistics.mean(errors):.6f}\n"
-        (DIAG / "metrics.txt").write_text(metrics, encoding="utf-8")
-        print(metrics)
-
+        errors = [normalized_mae(preview, pdf) for preview, pdf in zip(preview_pngs, pdf_pngs)]
         assert max(errors) < 0.18, f"Preview/PDF page divergence too high: {errors}"
         assert statistics.mean(errors) < 0.12, f"Preview/PDF mean divergence too high: {errors}"
 
         print(
             "BUILDER_PDF_PARITY_SMOKE=PASS "
-            f"pages={len(reader.pages)} max_mae={max(errors):.4f} mean_mae={statistics.mean(errors):.4f}"
+            f"pages={len(reader.pages)} max_mae={max(errors):.4f} mean_mae={statistics.mean(errors):.4f} logos=ok"
         )
     except Exception:
         for entry in driver.get_log("browser"):
@@ -258,6 +216,8 @@ def main() -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
+        if pdf_path.exists():
+            pdf_path.unlink()
 
 
 if __name__ == "__main__":
